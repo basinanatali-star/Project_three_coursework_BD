@@ -29,9 +29,9 @@ def main():
      )
      cursor = conn.cursor()
 
-     fill_table_from_csv(cursor,'customers', 'DATA/customers_data.csv', ['customer_id', 'company_name', 'contact_name'])
-     fill_table_from_csv(cursor, 'employees', 'DATA/employees_data.csv',  ['employee_id', 'first_name', 'last_name', 'title', 'birth_date', 'notes'])
-     fill_table_from_csv(cursor, 'orders', 'DATA/orders_data.csv',['order_id', 'customer_id', 'employee_id', 'order_date', 'ship_city'])
+     fill_table_from_csv(cursor,'customers', 'data/customers_data.csv', ['customer_id', 'company_name', 'contact_name'])
+     fill_table_from_csv(cursor, 'employees', 'data/employees_data.csv', ['employee_id', 'first_name', 'last_name', 'title', 'birth_date', 'notes'])
+     fill_table_from_csv(cursor, 'orders', 'data/orders_data.csv', ['order_id', 'customer_id', 'employee_id', 'order_date', 'ship_city'])
 
      conn.commit()
      cursor.close()
