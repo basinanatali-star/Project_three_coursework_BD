@@ -27,8 +27,8 @@
 * Модуль getting_a_token, содержащий функцию для получения токена доступа к OpenSky API
   
 ## Документация:
-Документация по API Opensky: https://openskynetwork.github.io/opensky-api/rest.html
-Документация по API Nominatim: https://nominatim.org/release-docs/latest/api/Overview/
+* Документация по API Opensky: https://openskynetwork.github.io/opensky-api/rest.html
+* Документация по API Nominatim: https://nominatim.org/release-docs/latest/api/Overview/
 
 ## Лицензия:
 Данный проект не обладает лицензией
