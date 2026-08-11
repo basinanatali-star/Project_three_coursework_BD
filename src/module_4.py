@@ -1,38 +1,31 @@
-import psycopg2
-from psycopg2 import sql
 from typing import List, Dict, Any, Optional
-from config import DB_CONFIG
-
+from src.module_2 import DatabaseModels
 
 class DBManager:
     """Класс для управления данными в БД PostgreSQL"""
 
     def __init__(self):
-        """Инициализация менеджера БД"""
+        self.db = DatabaseModels()  # Используем существующий класс
+        self.connection = None
+        self.cursor = None
+        self.country_cache = {}
+
+    def connect(self):
+        """Функция для подключения БД через DatabaseModels"""
+        if self.db.connect():
+            self.connection = self.db.connection
+            self.cursor = self.db.cursor
+            return True
+        return False
+
+    def disconnect(self):
+        """Функция для отключения БД через DatabaseModels"""
+        self.db.disconnect()
         self.connection = None
         self.cursor = None
 
-    def connect(self) -> bool:
-        """Устанавливает соединение с БД"""
-        try:
-            self.connection = psycopg2.connect(**DB_CONFIG)
-            self.cursor = self.connection.cursor()
-            print("✅ Подключение к БД установлено")
-            return True
-        except Exception as e:
-            print(f"❌ Ошибка подключения: {e}")
-            return False
-
-    def disconnect(self):
-        """Закрывает соединение с БД"""
-        if self.cursor:
-            self.cursor.close()
-        if self.connection:
-            self.connection.close()
-        print("🔒 Соединение с БД закрыто")
-
     def execute_query(self, query: str, params: tuple = ()) -> Optional[List[tuple]]:
-        """Выполняет запрос и возвращает результат"""
+        """Функция для выполнения запроса и возвращения результат"""
         try:
             if not self.connection or self.connection.closed:
                 if not self.connect():
@@ -49,18 +42,15 @@ class DBManager:
                 return None
 
         except Exception as e:
-            print(f"❌ Ошибка выполнения запроса: {e}")
+            print(f"Ошибка выполнения запроса: {e}")
             if self.connection:
                 self.connection.rollback()
             return None
 
-    # ============================================================
-    # МЕТОДЫ ДЛЯ ЗАДАНИЯ
-    # ============================================================
 
     def get_countries_and_aeroplanes_count(self) -> List[Dict[str, Any]]:
         """
-        Получает список всех стран и количество самолетов
+        Получение списка всех стран и количества самолетов
         в их воздушных пространствах.
 
         Returns:
@@ -91,7 +81,7 @@ class DBManager:
 
     def get_all_aeroplanes(self) -> List[Dict[str, Any]]:
         """
-        Получает список всех воздушных судов.
+        Получение списка всех воздушных судов.
 
         Returns:
             List[Dict]: Список словарей с ключами:
@@ -99,7 +89,7 @@ class DBManager:
                 - callsign (str): Позывной
                 - country_name (str): Страна регистрации
                 - speed (float): Скорость
-                - altitude (float): Высота
+                - baro_altitude (float): Высота
                 - latitude (float): Широта
                 - longitude (float): Долгота
                 - heading (float): Курс
@@ -111,7 +101,7 @@ class DBManager:
                 a.callsign,
                 c.name AS country_name,
                 a.speed,
-                a.altitude,
+                a.baro_altitude,
                 a.latitude,
                 a.longitude,
                 a.heading,
@@ -129,7 +119,7 @@ class DBManager:
                     "callsign": row[1],
                     "country_name": row[2],
                     "speed": row[3],
-                    "altitude": row[4],
+                    "baro_altitude": row[4],
                     "latitude": row[5],
                     "longitude": row[6],
                     "heading": row[7],
@@ -141,16 +131,16 @@ class DBManager:
 
     def get_avg_speed(self) -> float:
         """
-        Получает среднюю скорость по самолетам.
+        Получение средней скорости по самолетам.
 
         Returns:
             float: Средняя скорость (м/с), округленная до 2 знаков
         """
         query = """
-            SELECT 
-                COALESCE(AVG(speed), 0) AS avg_speed
-            FROM aeroplanes
-            WHERE speed IS NOT NULL AND speed > 0;
+            SELECT AVG(speed)
+        FROM aeroplanes
+        WHERE speed IS NOT NULL
+          AND speed > 0;
         """
 
         result = self.execute_query(query)
@@ -160,7 +150,7 @@ class DBManager:
 
     def get_aeroplanes_with_higher_speed(self) -> List[Dict[str, Any]]:
         """
-        Получает список всех самолетов, у которых скорость выше средней.
+        Получение списка всех самолетов, у которых скорость выше средней.
 
         Returns:
             List[Dict]: Список словарей с ключами:
@@ -168,7 +158,7 @@ class DBManager:
                 - callsign (str): Позывной
                 - country_name (str): Страна регистрации
                 - speed (float): Скорость
-                - altitude (float): Высота
+                - baro_altitude (float): Высота
                 - latitude (float): Широта
                 - longitude (float): Долгота
                 - speed_difference (float): Разница со средней скоростью
@@ -184,15 +174,15 @@ class DBManager:
                 a.callsign,
                 c.name AS country_name,
                 a.speed,
-                a.altitude,
+                a.baro_altitude,
                 a.latitude,
                 a.longitude,
-                ROUND(a.speed - ac.avg_speed, 2) AS speed_difference
-            FROM aeroplanes a
-            LEFT JOIN countries c ON a.country_id = c.id
-            CROSS JOIN avg_speed_cte ac
-            WHERE a.speed > ac.avg_speed
-            ORDER BY a.speed DESC;
+                ROUND(CAST(a.speed - ac.avg_speed AS numeric), 2) AS speed_difference
+        FROM aeroplanes a
+        LEFT JOIN countries c ON a.country_id = c.id
+        CROSS JOIN avg_speed_cte ac
+        WHERE a.speed > ac.avg_speed
+        ORDER BY a.speed DESC;
         """
 
         result = self.execute_query(query)
@@ -203,7 +193,7 @@ class DBManager:
                     "callsign": row[1],
                     "country_name": row[2],
                     "speed": row[3],
-                    "altitude": row[4],
+                    "baro_altitude": row[4],
                     "latitude": row[5],
                     "longitude": row[6],
                     "speed_difference": row[7]
@@ -214,7 +204,7 @@ class DBManager:
 
     def get_aeroplanes_with_keyword(self, keyword: str) -> List[Dict[str, Any]]:
         """
-        Получает список всех самолетов, в позывном которых
+        Получение списка всех самолетов, в позывном которых
         содержатся переданные в метод символы.
 
         Args:
@@ -226,7 +216,7 @@ class DBManager:
                 - callsign (str): Позывной
                 - country_name (str): Страна регистрации
                 - speed (float): Скорость
-                - altitude (float): Высота
+                - baro_altitude (float): Высота
                 - latitude (float): Широта
                 - longitude (float): Долгота
                 - heading (float): Курс
@@ -238,7 +228,7 @@ class DBManager:
                 a.callsign,
                 c.name AS country_name,
                 a.speed,
-                a.altitude,
+                a.baro_altitude,
                 a.latitude,
                 a.longitude,
                 a.heading,
@@ -259,7 +249,7 @@ class DBManager:
                     "callsign": row[1],
                     "country_name": row[2],
                     "speed": row[3],
-                    "altitude": row[4],
+                    "baro_altitude": row[4],
                     "latitude": row[5],
                     "longitude": row[6],
                     "heading": row[7],
@@ -270,25 +260,17 @@ class DBManager:
         return []
 
 
-# ============================================================
-# ТЕСТИРОВАНИЕ
-# ============================================================
-
 def test_db_manager():
-    """Тестирует все методы DBManager"""
+    """Функция для получения данных из БД PostgreSQL методами DBManager """
     db = DBManager()
 
     if not db.connect():
-        print("❌ Не удалось подключиться к БД")
+        print("Не удалось подключиться к БД")
         return
 
-    print("\n" + "=" * 60)
-    print("🧪 ТЕСТИРОВАНИЕ DBManager")
-    print("=" * 60)
-
     # 1. get_countries_and_aeroplanes_count()
-    print("\n1️⃣ get_countries_and_aeroplanes_count()")
-    print("-" * 40)
+    print("\nМетод №1: get_countries_and_aeroplanes_count()")
+    print("*" * 50)
     countries = db.get_countries_and_aeroplanes_count()
     if countries:
         for item in countries[:10]:
@@ -296,11 +278,11 @@ def test_db_manager():
         if len(countries) > 10:
             print(f"   ... и еще {len(countries) - 10} стран")
     else:
-        print("   ⚠️ Нет данных")
+        print("   Нет данных")
 
     # 2. get_all_aeroplanes()
-    print("\n2️⃣ get_all_aeroplanes()")
-    print("-" * 40)
+    print("\nМетод №2: get_all_aeroplanes()")
+    print("*" * 50)
     planes = db.get_all_aeroplanes()
     if planes:
         print(f"   Всего самолетов: {len(planes)}")
@@ -312,19 +294,19 @@ def test_db_manager():
         if len(planes) > 5:
             print(f"   ... и еще {len(planes) - 5} самолетов")
     else:
-        print("   ⚠️ Нет данных")
+        print("   Нет данных")
 
     # 3. get_avg_speed()
-    print("\n3️⃣ get_avg_speed()")
-    print("-" * 40)
+    print("\nМетод №3: get_avg_speed()")
+    print("*" * 50)
     avg_speed = db.get_avg_speed()
     print(f"   Средняя скорость: {avg_speed} м/с")
     if avg_speed > 0:
         print(f"   ({(avg_speed * 3.6):.2f} км/ч)")
 
     # 4. get_aeroplanes_with_higher_speed()
-    print("\n4️⃣ get_aeroplanes_with_higher_speed()")
-    print("-" * 40)
+    print("\nМетод №4: get_aeroplanes_with_higher_speed()")
+    print("*" * 50)
     fast_planes = db.get_aeroplanes_with_higher_speed()
     if fast_planes:
         print(f"   Самолетов со скоростью выше средней: {len(fast_planes)}")
@@ -337,14 +319,14 @@ def test_db_manager():
         if len(fast_planes) > 5:
             print(f"   ... и еще {len(fast_planes) - 5} самолетов")
     else:
-        print("   ⚠️ Нет данных")
+        print("   Нет данных")
 
     # 5. get_aeroplanes_with_keyword()
-    print("\n5️⃣ get_aeroplanes_with_keyword('AFL')")
-    print("-" * 40)
-    found = db.get_aeroplanes_with_keyword("AFL")
+    print("\nМетод №5: get_aeroplanes_with_keyword('AVG')")
+    print("*" * 50)
+    found = db.get_aeroplanes_with_keyword("AVG")
     if found:
-        print(f"   Найдено самолетов с 'AFL': {len(found)}")
+        print(f"   Найдено самолетов с 'AVG': {len(found)}")
         for plane in found[:5]:
             callsign = plane['callsign'] or 'Без позывного'
             icao = plane['icao24']
@@ -353,14 +335,7 @@ def test_db_manager():
         if len(found) > 5:
             print(f"   ... и еще {len(found) - 5} самолетов")
     else:
-        print("   ⚠️ Нет данных")
-
-    print("\n" + "=" * 60)
-    print("✅ Тестирование завершено")
-    print("=" * 60)
+        print("   Нет данных")
+    print("\nТестирование завершено")
 
     db.disconnect()
-
-
-if __name__ == "__main__":
-    test_db_manager()

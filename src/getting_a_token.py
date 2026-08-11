@@ -1,6 +1,6 @@
 import requests
-from config import CLIENT_ID, CLIENT_SECRET, TOKEN_URL
-
+import os
+from dotenv import load_dotenv
 
 def get_token():
     """
@@ -9,16 +9,21 @@ def get_token():
     """
     print("Получаю токен...")
 
+    load_dotenv()
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("CLIENT_SECRET")
+    token_url = os.getenv("TOKEN_URL")
+
     # Данные для отправки
     data = {
         "grant_type": "client_credentials",
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET
+        "client_id": client_id,
+        "client_secret": client_secret
     }
 
     try:
         # Отправляем запрос
-        response = requests.post(TOKEN_URL, data=data)
+        response = requests.post(token_url, data=data)
 
         # Проверяем успешность
         if response.status_code == 200:
