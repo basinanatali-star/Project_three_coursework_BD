@@ -2,10 +2,10 @@ import requests
 import os
 from dotenv import load_dotenv
 
+
 def get_token():
     """
-    Получает токен доступа к OpenSky API
-    Возвращает токен или None в случае ошибки
+    Функция для получения токена доступа к OpenSky API
     """
     print("Получаю токен...")
 
@@ -15,11 +15,7 @@ def get_token():
     token_url = os.getenv("TOKEN_URL")
 
     # Данные для отправки
-    data = {
-        "grant_type": "client_credentials",
-        "client_id": client_id,
-        "client_secret": client_secret
-    }
+    data = {"grant_type": "client_credentials", "client_id": client_id, "client_secret": client_secret}
 
     try:
         # Отправляем запрос

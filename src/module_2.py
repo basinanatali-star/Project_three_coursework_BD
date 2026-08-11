@@ -4,10 +4,11 @@ from config import DB_CONFIG
 
 load_dotenv()
 
+
 class DatabaseModels:
     """Класс для создания структуры БД"""
 
-    def __init__(self):
+    def __init__(self) :
         self.connection = None
         self.cursor = None
 
@@ -89,8 +90,8 @@ class DatabaseModels:
             # Проверяем существование колонки speed
             self.cursor.execute("""
                 SELECT EXISTS (
-                    SELECT FROM information_schema.columns 
-                    WHERE table_name = 'aeroplanes' 
+                    SELECT FROM information_schema.columns
+                    WHERE table_name = 'aeroplanes'
                     AND column_name = 'speed'
                 );
             """)
@@ -106,7 +107,7 @@ class DatabaseModels:
             indexes = [
                 "CREATE INDEX IF NOT EXISTS idx_aeroplanes_country ON aeroplanes(country_id);",
                 "CREATE INDEX IF NOT EXISTS idx_aeroplanes_speed ON aeroplanes(speed);",
-                "CREATE INDEX IF NOT EXISTS idx_aeroplanes_callsign ON aeroplanes(callsign);"
+                "CREATE INDEX IF NOT EXISTS idx_aeroplanes_callsign ON aeroplanes(callsign);",
             ]
 
             for index in indexes:

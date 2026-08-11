@@ -1,8 +1,9 @@
 from typing import List, Dict, Any, Optional
 from src.module_2 import DatabaseModels
 
+
 class DBManager:
-    """Класс для управления данными в БД PostgreSQL"""
+    """Класс для управления данными из БД PostgreSQL"""
 
     def __init__(self):
         self.db = DatabaseModels()  # Используем существующий класс
@@ -47,7 +48,6 @@ class DBManager:
                 self.connection.rollback()
             return None
 
-
     def get_countries_and_aeroplanes_count(self) -> List[Dict[str, Any]]:
         """
         Получение списка всех стран и количества самолетов
@@ -59,7 +59,7 @@ class DBManager:
                 - aeroplanes_count (int): Количество самолетов
         """
         query = """
-            SELECT 
+            SELECT
                 c.name AS country_name,
                 COUNT(a.id) AS aeroplanes_count
             FROM countries c
@@ -70,13 +70,7 @@ class DBManager:
 
         result = self.execute_query(query)
         if result:
-            return [
-                {
-                    "country_name": row[0],
-                    "aeroplanes_count": row[1]
-                }
-                for row in result
-            ]
+            return [{"country_name": row[0], "aeroplanes_count": row[1]} for row in result]
         return []
 
     def get_all_aeroplanes(self) -> List[Dict[str, Any]]:
@@ -96,7 +90,7 @@ class DBManager:
                 - last_seen (timestamp): Время последнего обновления
         """
         query = """
-            SELECT 
+            SELECT
                 a.icao24,
                 a.callsign,
                 c.name AS country_name,
@@ -123,7 +117,7 @@ class DBManager:
                     "latitude": row[5],
                     "longitude": row[6],
                     "heading": row[7],
-                    "last_seen": row[8]
+                    "last_seen": row[8],
                 }
                 for row in result
             ]
@@ -169,7 +163,7 @@ class DBManager:
                 FROM aeroplanes
                 WHERE speed IS NOT NULL AND speed > 0
             )
-            SELECT 
+            SELECT
                 a.icao24,
                 a.callsign,
                 c.name AS country_name,
@@ -196,7 +190,7 @@ class DBManager:
                     "baro_altitude": row[4],
                     "latitude": row[5],
                     "longitude": row[6],
-                    "speed_difference": row[7]
+                    "speed_difference": row[7],
                 }
                 for row in result
             ]
@@ -223,7 +217,7 @@ class DBManager:
                 - last_seen (timestamp): Время последнего обновления
         """
         query = """
-            SELECT 
+            SELECT
                 a.icao24,
                 a.callsign,
                 c.name AS country_name,
@@ -235,7 +229,7 @@ class DBManager:
                 a.last_seen
             FROM aeroplanes a
             LEFT JOIN countries c ON a.country_id = c.id
-            WHERE a.callsign IS NOT NULL 
+            WHERE a.callsign IS NOT NULL
                 AND a.callsign != ''
                 AND a.callsign ILIKE %s
             ORDER BY a.callsign;
@@ -253,7 +247,7 @@ class DBManager:
                     "latitude": row[5],
                     "longitude": row[6],
                     "heading": row[7],
-                    "last_seen": row[8]
+                    "last_seen": row[8],
                 }
                 for row in result
             ]
@@ -261,7 +255,7 @@ class DBManager:
 
 
 def test_db_manager():
-    """Функция для получения данных из БД PostgreSQL методами DBManager """
+    """Функция для получения данных из БД PostgreSQL методами DBManager"""
     db = DBManager()
 
     if not db.connect():
@@ -287,9 +281,9 @@ def test_db_manager():
     if planes:
         print(f"   Всего самолетов: {len(planes)}")
         for plane in planes[:5]:
-            callsign = plane['callsign'] or 'Без позывного'
-            country = plane['country_name'] or 'Неизвестно'
-            speed = plane['speed'] or 'Нет данных'
+            callsign = plane["callsign"] or "Без позывного"
+            country = plane["country_name"] or "Неизвестно"
+            speed = plane["speed"] or "Нет данных"
             print(f"   {callsign} ({country}) - скорость: {speed} м/с")
         if len(planes) > 5:
             print(f"   ... и еще {len(planes) - 5} самолетов")
@@ -311,10 +305,10 @@ def test_db_manager():
     if fast_planes:
         print(f"   Самолетов со скоростью выше средней: {len(fast_planes)}")
         for plane in fast_planes[:5]:
-            callsign = plane['callsign'] or 'Без позывного'
-            country = plane['country_name'] or 'Неизвестно'
-            speed = plane['speed'] or 0
-            diff = plane['speed_difference'] or 0
+            callsign = plane["callsign"] or "Без позывного"
+            country = plane["country_name"] or "Неизвестно"
+            speed = plane["speed"] or 0
+            diff = plane["speed_difference"] or 0
             print(f"   {callsign} ({country}): {speed} м/с (на {diff} м/с выше среднего)")
         if len(fast_planes) > 5:
             print(f"   ... и еще {len(fast_planes) - 5} самолетов")
@@ -328,9 +322,9 @@ def test_db_manager():
     if found:
         print(f"   Найдено самолетов с 'AVG': {len(found)}")
         for plane in found[:5]:
-            callsign = plane['callsign'] or 'Без позывного'
-            icao = plane['icao24']
-            country = plane['country_name'] or 'Неизвестно'
+            callsign = plane["callsign"] or "Без позывного"
+            icao = plane["icao24"]
+            country = plane["country_name"] or "Неизвестно"
             print(f"   {callsign} ({icao}) - {country}")
         if len(found) > 5:
             print(f"   ... и еще {len(found) - 5} самолетов")

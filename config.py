@@ -8,7 +8,7 @@ DB_CONFIG = {
     "dbname": os.getenv("DB_NAME"),
     "user": os.getenv("DB_USER", "postgres"),
     "password": os.getenv("DB_PASSWORD"),
-    "port": int(os.getenv("DB_PORT")),
+    "port": os.getenv("DB_PORT"),
 }
 
 COUNTRIES = ["Russia", "Germany", "Brazil", "Japan"]

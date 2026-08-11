@@ -2,6 +2,7 @@ import requests
 import os
 from dotenv import load_dotenv
 
+
 def get_aircraft_data(token, country_name=None, bbox=None):
     """
     Функция для получения данных о самолетах
@@ -17,13 +18,7 @@ def get_aircraft_data(token, country_name=None, bbox=None):
     # Если передан ограничивающий прямоугольник - добавляем его в запрос
     if bbox:
         lat_min, lon_min, lat_max, lon_max = bbox
-        params = {
-            "lamin": lat_min,
-            "lomin": lon_min,
-            "lamax": lat_max,
-            "lomax": lon_max,
-            "extended": 1
-        }
+        params = {"lamin": lat_min, "lomin": lon_min, "lamax": lat_max, "lomax": lon_max, "extended": 1}
         print(f"Запрашиваю самолеты в области {country_name}...")
     else:
         print("Запрашиваю все самолеты в мире...")
@@ -55,14 +50,8 @@ def get_country_bbox(country_name):
     load_dotenv()
     url_nominatim = os.getenv("API_URL_NOMINATIM")
 
-    params = {
-        "q": country_name,
-        "format": "json",
-        "limit": 1
-    }
-    headers = {
-        "User-Agent": "MyOpenSkyApp/1.0 (basinanatali@gmail.com)"
-    }
+    params = {"q": country_name, "format": "json", "limit": 1}
+    headers = {"User-Agent": "MyOpenSkyApp/1.0 (basinanatali@gmail.com)"}
 
     try:
         response = requests.get(url_nominatim, params=params, headers=headers)
@@ -90,6 +79,7 @@ def safe_get_state_value(state, index, default=None):
     Безопасно получает значение из списка state, если индекс существует
     """
     return state[index] if len(state) > index else default
+
 
 def parse_aircraft(state):
     """

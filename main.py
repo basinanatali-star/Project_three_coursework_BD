@@ -1,10 +1,10 @@
 from src.module_1 import get_aircraft_data, parse_aircraft, get_country_bbox
 from src.module_2 import DatabaseModels
 from src.module_3 import DatabaseFiller
-from src.module_4 import DBManager, test_db_manager
-
+from src.module_4 import test_db_manager
 from src.getting_a_token import get_token
 from config import COUNTRIES
+
 
 def main():
     print("=" * 50)
@@ -37,16 +37,16 @@ def main():
                 aircraft = parse_aircraft(state)
                 print(f"\n{i + 1}. {aircraft['callsign']} ({aircraft['icao24']})")
                 print(f"   Страна: {aircraft['country']}")
-                if aircraft['latitude'] and aircraft['longitude']:
+                if aircraft["latitude"] and aircraft["longitude"]:
                     print(f"   Координаты: {aircraft['latitude']:.4f}, {aircraft['longitude']:.4f}")
                 else:
-                    print(f"   Координаты: нет данных")
-                if aircraft['baro_altitude']:
+                    print("   Координаты: нет данных")
+                if aircraft["baro_altitude"]:
                     print(f"   Высота: {aircraft['baro_altitude']:.0f} м")
-                if aircraft['velocity']:
+                if aircraft["velocity"]:
                     print(f"   Скорость: {aircraft['velocity'] * 3.6:.0f} км/ч")
                 print(f"   Статус: {'На земле' if aircraft['on_ground'] else 'В воздухе'}")
-                if aircraft['category']:
+                if aircraft["category"]:
                     print(f"   Категория самолета: {aircraft['category']}")
 
     elif choice == "2":
@@ -126,6 +126,7 @@ def main():
     print("=" * 50)
 
     test_db_manager()
+
 
 if __name__ == "__main__":
     main()
